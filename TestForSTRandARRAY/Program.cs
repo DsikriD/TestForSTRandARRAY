@@ -7,74 +7,82 @@ namespace TestForSTRandARRAY
 {
     public class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            Server.AddToCountAsync(5);
-            Console.WriteLine(Server.GetCountAsync());
-            Server.AddToCountAsync(7);
-            Console.WriteLine(Server.GetCountAsync());
+            Console.WriteLine($"Метод Main начал работу в потоке{Thread.CurrentThread.ManagedThreadId}");
+            await Server.AddToCount(1);
+            Server.GetCount();
+            await Server.AddToCount(2);
+            Server.GetCount();
+            Console.WriteLine($"Метод Main закончил работу в потоке{Thread.CurrentThread.ManagedThreadId}");
+            Console.ReadLine();
         }
 
         public static class Server
         {
             private static int count;
 
-            private static async Task<int> GetCount() {
-                return count;
+            public static async Task GetCount() {
+
+                Console.WriteLine($"Метод GetCount начал работу в потоке {Thread.CurrentThread.ManagedThreadId}");
+                await Task.Run(()=>Console.WriteLine(count));// Задача выполняется во вторичном потоке
+                Console.WriteLine($"Метод GetCount закончил работу в потоке {Thread.CurrentThread.ManagedThreadId}");
             }
 
-            private static async Task<int> AddToCount(int value)
+            public static async Task AddToCount(int value)
             {
+                Console.WriteLine($"Метод AddToCount начал работу в потоке{Thread.CurrentThread.ManagedThreadId}");
+                await Task.Delay(10000); // имитация продолжительной работы
                 count = value;
-                return value;
+                Console.WriteLine($"Метод AddToCount закончил работу в потоке{Thread.CurrentThread.ManagedThreadId}");
+              
             }
-
-            public static int GetCountAsync()
-            {
-                var task = GetCount();
-                return task.Result;
-            }
-
-            public static void AddToCountAsync(int value)
-            {
-                var task =  AddToCount(value);
-                task.Wait();
-            }
-
 
         }
 
 
-
-
-        public static int[,] Matrix(int[,] matrix)
+        public static int[] Matrix(int[,] matrix)// По спирали
         {
             int n = matrix.GetLength(0);
-            int count = n;
-            int value = -n;
-            int sum = -1;
+            int m = matrix.GetLength(1);
+            int l = -1;
+            int k = 0;
+            int[] Resualt = new int[matrix.Length];
+            int count = 0;
+            int One = 1;
 
-            do
+            while (n > 0 && m > 0)
             {
-                value = -1 * value / n;
-                for (int i = 0; i < count; i++)
-                {
-                    sum += value;
-                    Console.Write(matrix[sum % n, sum / n] + " ");
-                }
-                value *= n;
-                count--;
-                for (int i = 0; i < count; i++)
-                {
-                    sum += value;
-                    Console.Write(matrix[sum % n, sum / n] + " ");
-                }
-            } while (count > 0);
 
-            return matrix;
+                for (int i = 0; i < n; i++)
+                {
+                    l = l + One;
+                    Resualt[count] = matrix[l, k];
+                    count++;
+                }
+                n--;
+
+                for (int i = 0; i < m - 1; i++)
+                {
+
+                    k = k + One;
+                    Resualt[count] = matrix[l, k];
+                    count++;
+                }
+                m--;
+
+                One = One * (-1);
+            }
+            foreach (var a in Resualt)
+                Console.Write(a+";");
+            Console.WriteLine();
+
+
+            return Resualt;
         }
 
-        
+
+
         public static string ZipStirng(string str)
         {
             str = str.Trim();
